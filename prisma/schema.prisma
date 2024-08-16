@@ -14,13 +14,13 @@ datasource db {
 }
 
 model Video {
-  id             String  @id @default(uuid())
+  id             String   @id @default(uuid())
   title          String
   description    String?
   publicId       String
   orignalSize    String
   compressedSize String
-  duration      String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  duration       Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
