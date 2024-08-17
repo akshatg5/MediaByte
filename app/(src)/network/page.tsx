@@ -39,8 +39,10 @@ export default function Network() {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const response = await axios.post("/api/image-upload", {
-        formData,
+      const response = await axios.post("/api/image-upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       if (!response) {
@@ -73,7 +75,6 @@ export default function Network() {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        document.body.removeChild(link);
       });
   };
 
