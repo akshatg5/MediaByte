@@ -1,5 +1,158 @@
-import { SignUp } from '@clerk/nextjs'
+"use client";
 
-export default function Page() {
-  return <SignUp />
-}
+import { useSignUp } from "@clerk/nextjs";
+import { Fullscreen } from "lucide-react";
+import { useState } from "react";
+import { FcGoogle } from "react-icons/fc";
+
+const SignUpForm = () => {
+  const { signUp } = useSignUp();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      if (signUp) {
+        const response = await signUp.create({
+          emailAddress: email,
+          password,
+          firstName,
+          lastName,
+        });
+
+        if (response.status === "complete") {
+          window.location.href = "/home"; // Redirect to /home on successful sign-up
+        } else {
+          setError("Sign-up Failed. Try again!");
+        }
+      } else {
+        setError("Sign-up process is not available at this time.");
+      }
+    } catch (err) {
+      setError("Failed to sign up. Please check your details.");
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      if (signUp) {
+        await signUp.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: "/home",
+          redirectUrlComplete: "/home",
+        });
+      } else {
+        setError("Sign-up process is not available at this time.");
+      }
+    } catch (err) {
+      setError("Failed to sign up with Google. Please try again.");
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 bg-white shadow-lg rounded-lg">
+        <div className="flex items-center justify-center py-4 border-b border-gray-200">
+          <Fullscreen className="w-10 h-10 text-blue-600" />
+          <p className="text-blue-600 font-bold text-2xl">MediaByte</p>
+        </div>
+        <h2 className="text-2xl font-bold mb-6 text-center text-black">
+          Sign Up
+        </h2>
+
+        <form onSubmit={handleSignUp} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              First Name
+            </label>
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Last Name
+            </label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          <button
+            type="submit"
+            className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Sign Up
+          </button>
+        </form>
+
+        <hr className="my-6 border-gray-300" />
+
+        <button
+          onClick={handleGoogleSignUp}
+          className="w-full h-[3rem] text-white bg-black rounded-md flex justify-center items-center p-2"
+        >
+          <FcGoogle />
+          <p className="ml-4">Sign up with Google</p>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default SignUpForm;

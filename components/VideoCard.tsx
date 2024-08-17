@@ -1,10 +1,11 @@
 import { getCldImageUrl, getCldVideoUrl } from "next-cloudinary";
-import { Download, Clock, FileDown, FileUp } from "lucide-react";
+import { Download, Clock, FileDown, FileUp, Clock1 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { filesize } from "filesize";
 import { Video } from "@prisma/client";
 import { useCallback, useEffect, useState } from "react";
+import { error } from "console";
 
 dayjs.extend(relativeTime);
 
@@ -16,6 +17,7 @@ interface VideoCardProps {
 const VideoCard: React.FC<VideoCardProps> = ({ video, onDownload }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [previewError, setPreviewError] = useState(false);
+  const [loading,setLoading] = useState(false)
 
   const getThumbnailUrl = useCallback((publicId: string) => {
     return getCldImageUrl({
@@ -68,6 +70,28 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onDownload }) => {
   const handlePreviewError = () => {
     setPreviewError(true);
   };
+
+  const handleDownload = useCallback(async () => {
+    setLoading(true);
+    try {
+      const videoUrl = getFullVideoUrl(video.publicId);
+      const response = await fetch(videoUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${video.title.replace(/\s+/g, "_").toLowerCase()}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download the video:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [video]);
+  
 
   return (
     <div
@@ -134,11 +158,9 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onDownload }) => {
           </div>
           <button
             className="btn btn-primary btn-sm"
-            onClick={() =>
-              onDownload(getFullVideoUrl(video.publicId), video.title)
-            }
+            onClick={handleDownload}
           >
-            <Download size={16} />
+            { loading ? <Clock1 size={16} /> :<Download size={16} /> }
           </button>
         </div>
       </div>

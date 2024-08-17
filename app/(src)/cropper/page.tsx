@@ -80,13 +80,13 @@ export default function Network() {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">
+      <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">
         Social Media Image Creator
       </h1>
 
       <div className="card">
         <div className="card-body">
-          <h2 className="card-title mb-4">Upload an Image</h2>
+          <h2 className="card-title mb-4 text-blue-600">Upload an Image</h2>
           <div className="form-control">
             <label className="label">
               <span className="label-text">Choose an image file</span>

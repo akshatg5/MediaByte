@@ -15,8 +15,8 @@ import {
 
 const sidebarItems = [
   { href: "/home", icon: LayoutDashboardIcon, label: "Home Page",description : "Main page" },
-  { href: "/network", icon: Share2Icon, label: "Network",description : "Customize your photos!" },
-  { href: "/upload", icon: UploadIcon, label: "Video Upload",description : "Upload videos!" },
+  { href: "/cropper", icon: Share2Icon, label: "Cropper",description : "Customize your photos!" },
+  { href: "/video", icon: UploadIcon, label: "Video Upload",description : "Upload videos,compress them!" },
 ];
 
 export default function AppLayout({
@@ -99,7 +99,7 @@ export default function AppLayout({
               </button>
               <Link href="/" onClick={handleLogoClick} className="ml-4">
                 <div className="text-2xl font-bold text-blue-600 cursor-pointer">
-                  {location.pathname.split('/').join('').toUpperCase()}
+                  {pathname.split('/').join('').toUpperCase()}
                 </div>
               </Link>
             </div>
