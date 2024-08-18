@@ -14,9 +14,24 @@ import {
 } from "lucide-react";
 
 const sidebarItems = [
-  { href: "/home", icon: LayoutDashboardIcon, label: "Home Page",description : "Main page" },
-  { href: "/cropper", icon: Share2Icon, label: "Cropper",description : "Customize your photos!" },
-  { href: "/video", icon: UploadIcon, label: "Video Upload",description : "Upload videos,compress them!" },
+  {
+    href: "/home",
+    icon: LayoutDashboardIcon,
+    label: "Home Page",
+    description: "Main page",
+  },
+  {
+    href: "/cropper",
+    icon: Share2Icon,
+    label: "Cropper",
+    description: "Customize your photos!",
+  },
+  {
+    href: "/video",
+    icon: UploadIcon,
+    label: "Video Upload",
+    description: "Upload videos,compress them!",
+  },
 ];
 
 export default function AppLayout({
@@ -46,10 +61,8 @@ export default function AppLayout({
         } transition-transform duration-200 ease-in-out bg-white shadow-lg lg:translate-x-0 lg:static lg:shadow-none w-64 z-50`}
       >
         <div className="flex items-center justify-center py-4 border-b border-gray-200">
-          <Fullscreen className="w-10 h-10 text-blue-600" /> 
-          <p className="text-blue-600 font-bold text-2xl">
-            MediaByte
-            </p>
+          <Fullscreen className="w-10 h-10 text-blue-600" />
+          <p className="text-blue-600 font-bold text-2xl">MediaByte</p>
         </div>
         <ul className="flex flex-col p-4 space-y-2">
           {sidebarItems.map((item) => (
@@ -65,14 +78,14 @@ export default function AppLayout({
               >
                 <item.icon className="w-6 h-6" />
                 <div className="flex flex-col">
-                <span>{item.label}</span>
-                <p className="text-xs">{item.description}</p>
+                  <span>{item.label}</span>
+                  <p className="text-xs">{item.description}</p>
                 </div>
               </Link>
             </li>
           ))}
         </ul>
-        {user && (
+        {user ? (
           <div className="p-4 mt-auto border-t border-gray-200">
             <button
               onClick={handleSignOut}
@@ -81,6 +94,21 @@ export default function AppLayout({
               <LogOutIcon className="mr-2 h-5 w-5" />
               Sign Out
             </button>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <Link
+              href="/sign-in"
+              className="mr-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300 shadow-md hover:shadow-lg"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/sign-up"
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-300 shadow-md hover:shadow-lg"
+            >
+              Sign Up
+            </Link>
           </div>
         )}
       </div>
@@ -99,7 +127,7 @@ export default function AppLayout({
               </button>
               <Link href="/" onClick={handleLogoClick} className="ml-4">
                 <div className="text-2xl font-bold text-blue-600 cursor-pointer">
-                  {pathname.split('/').join('').toUpperCase()}
+                  {pathname.split("/").join("").toUpperCase()}
                 </div>
               </Link>
             </div>
@@ -109,9 +137,7 @@ export default function AppLayout({
                   <div className="w-8 h-8 rounded-full overflow-hidden">
                     <img
                       src={user.imageUrl}
-                      alt={
-                        user.username || user.emailAddresses[0].emailAddress
-                      }
+                      alt={user.username || user.emailAddresses[0].emailAddress}
                     />
                   </div>
                   <span className="text-sm text-gray-700 truncate max-w-xs lg:max-w-md">
