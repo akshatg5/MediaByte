@@ -14,13 +14,14 @@ datasource db {
 }
 
 model User {
-  id  String  @id @default(uuid())
-  firstName   String?
-  lastName    String?
-  email       String  @unique
-  password    String?
-  auth_type   AuthType
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(uuid())
+  firstName String?
+  lastName  String?
+  email     String   @unique
+  password  String?
+  videos    Video[]  @relation("UploadedVideos")
+  auth_type AuthType
+  createdAt DateTime @default(now())
 }
 
 model Video {
@@ -30,6 +31,8 @@ model Video {
   publicId       String
   orignalSize    String
   compressedSize String
+  uploadedById   String
+  uploadedBy     User     @relation(fields: [uploadedById], references: [id], name: "UploadedVideos")
   duration       Float
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

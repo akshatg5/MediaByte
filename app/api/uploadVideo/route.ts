@@ -22,7 +22,7 @@ interface CloudinaryUploadResult {
 export async function POST(request: NextRequest) {
   try {
     const { userId } = auth();
-
+    console.log(userId)
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
         title,
         description,
         duration: result.duration || 0,
+        uploadedById :userId ,
         compressedSize: String(result.bytes),
         publicId: result.public_id,
         orignalSize: orignalSize,

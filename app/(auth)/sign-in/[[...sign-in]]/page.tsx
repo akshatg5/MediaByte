@@ -1,12 +1,16 @@
 "use client";
-
+// sign-in/page.tsx
 import { useSignIn } from "@clerk/nextjs";
+import axios from "axios";
 import { Fullscreen } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import SignUpForm from "../../sign-up/[[...sign-up]]/page";
+import { syncUserWithDb } from "@/utils/SyncUserWithDb";
 
 const SignInForm = () => {
-  const { signIn } = useSignIn();
+  const { signIn } = useSignIn(); // Get Clerk's signIn method
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -15,19 +19,20 @@ const SignInForm = () => {
     e.preventDefault();
 
     try {
-      if (signIn) {
-        const response = await signIn.create({
-          identifier: email,
-          password,
-        });
+      const result = await signIn?.create({
+        identifier: email,
+        password,
+      });
 
-        if (response.status === "complete") {
-          window.location.href = "/home"; // Redirect to /home on successful sign-in
-        } else {
-          setError("Sign-in Failed. Try again!");
-        }
+      if (result?.status === "complete") {
+        await syncUserWithDb({
+          email,
+          firstName: result.userData.firstName || "",
+          lastName: result.userData.lastName || "",
+          auth_type: "Local",
+        });
       } else {
-        setError("Sign-in process is not available at this time.");
+        setError("Failed to sign in.Please check your credentials!")
       }
     } catch (err) {
       setError("Failed to sign in. Please check your credentials.");
@@ -36,17 +41,16 @@ const SignInForm = () => {
 
   const handleGoogleSignIn = async () => {
     try {
-      if (signIn) {
-        await signIn.authenticateWithRedirect({
-          strategy: "oauth_google",
-          redirectUrl: "/home",
-          redirectUrlComplete: "/home",
-        });
-      } else {
-        setError("Sign-in process is not available at this time.");
-      }
-    } catch (err) {
-      setError("Failed to sign in with Google. Please try again.");
+      console.log("Signin in with google")
+      const response = await signIn?.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/auth-callback",
+        redirectUrlComplete: "/home",
+      });
+      console.log("Tried signin in with google",response)
+      
+    } catch (error) {
+      setError("Failed to sign in with google.Try again!");
     }
   };
 
@@ -104,6 +108,12 @@ const SignInForm = () => {
           <FcGoogle />
           <p className="ml-4">Sign in with Google</p>
         </button>
+        <div className="flex mt-4">
+          <p className="text-black">Don't have an account?</p>
+          <Link href="/sign-up">
+            <p className="text-blue-600">Sign up</p>
+          </Link>
+        </div>
       </div>
     </div>
   );
