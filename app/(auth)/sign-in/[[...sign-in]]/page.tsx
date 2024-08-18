@@ -32,7 +32,7 @@ const SignInForm = () => {
           auth_type: "Local",
         });
       } else {
-        setError("Failed to sign in.Please check your credentials!")
+        setError("Failed to sign in.Please check your credentials!");
       }
     } catch (err) {
       setError("Failed to sign in. Please check your credentials.");
@@ -40,17 +40,24 @@ const SignInForm = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    try {
-      console.log("Signin in with google")
-      const response = await signIn?.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/auth-callback",
-        redirectUrlComplete: "/home",
-      });
-      console.log("Tried signin in with google",response)
-      
-    } catch (error) {
-      setError("Failed to sign in with google.Try again!");
+    const userExists = await axios.get("/api/user/user-exists", {
+      params: email,
+    });
+    if (!userExists.data.success) {
+      setError("Email not found,please sign in first!");
+      window.location.href = "/sign-up";
+    } else {
+      try {
+        console.log("Signin in with google");
+        const response = await signIn?.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: "/auth-callback",
+          redirectUrlComplete: "/home",
+        });
+        console.log("Tried signin in with google", response);
+      } catch (error) {
+        setError("Failed to sign in with google.Try again!");
+      }
     }
   };
 
@@ -109,7 +116,7 @@ const SignInForm = () => {
           <p className="ml-4">Sign in with Google</p>
         </button>
         <div className="flex mt-4">
-        <p className="text-black">Don&apos;t have an account?</p>
+          <p className="text-black">Don&apos;t have an account?</p>
           <Link href="/sign-up">
             <p className="text-blue-600">Sign up</p>
           </Link>

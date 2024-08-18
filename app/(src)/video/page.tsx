@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -41,6 +41,15 @@ export default function Upload() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4 text-blue-600">Upload Video</h1>
+      {uploading && (
+        <div className="absolute inset-0 bg-white bg-opacity-75 z-10 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-solid mx-auto"></div>
+            <p className="mt-4 text-lg font-semibold text-blue-600">MediaByte</p>
+            <p className="mt-2 text-md font-semibold text-blue-600">Uploading Video</p>
+          </div>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="label">
@@ -80,6 +89,7 @@ export default function Upload() {
           {uploading ? "Uploading..." : "Upload Video"}
         </button>
       </form>
+      
     </div>
   );
 }

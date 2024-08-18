@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/dist/server/api-utils";
+import { currentUser } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -9,7 +8,7 @@ const prisma = new PrismaClient();
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET, 
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 interface CloudinaryUploadResult {
@@ -21,10 +20,21 @@ interface CloudinaryUploadResult {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth();
-    console.log(userId)
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await currentUser();
+
+    if (!user || !user.emailAddresses || user.emailAddresses.length === 0) {
+      return NextResponse.json({ error: "User not found or no email address" }, { status: 404 });
+    }
+
+    const userEmail = user.emailAddresses[0].emailAddress;
+
+    // Fetch the user from the database using the email
+    const dbUser = await prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: "User not found in database" }, { status: 404 });
     }
 
     if (
@@ -37,6 +47,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const title = formData.get("title") as string;
@@ -72,15 +83,16 @@ export async function POST(request: NextRequest) {
         title,
         description,
         duration: result.duration || 0,
-        uploadedById :userId ,
+        uploadedById: dbUser.id,  // Use the ID from the database
         compressedSize: String(result.bytes),
         publicId: result.public_id,
         orignalSize: orignalSize,
       },
     });
+
     return NextResponse.json(video);
   } catch (error) {
-    console.log("Upload video failed error :", error);
+    console.log("Upload video failed error:", error);
     return NextResponse.json({ error: "video upload failed" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
