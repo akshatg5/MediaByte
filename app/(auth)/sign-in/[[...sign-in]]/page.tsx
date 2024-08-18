@@ -109,7 +109,7 @@ const SignInForm = () => {
           <p className="ml-4">Sign in with Google</p>
         </button>
         <div className="flex mt-4">
-          <p className="text-black">Don't have an account?</p>
+        <p className="text-black">Don&apos;t have an account?</p>
           <Link href="/sign-up">
             <p className="text-blue-600">Sign up</p>
           </Link>
