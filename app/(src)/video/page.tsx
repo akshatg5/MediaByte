@@ -8,6 +8,7 @@ export default function Upload() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [uploading, setUplaoding] = useState(false);
+  const [success,setSuccess] = useState(false)
   const router = useRouter();
   // max file size of 60mb
 
@@ -31,10 +32,14 @@ export default function Upload() {
     try {
       const response = await axios.post("/api/uploadVideo", formData);
       // check for status code todo
+      if (response.status == 200) {
+        router.push("/home")
+      }
     } catch (error) {
       console.log(error);
     } finally {
       setUplaoding(false);
+      router.push("/home")
     }
   };
 
@@ -49,7 +54,12 @@ export default function Upload() {
             <p className="mt-2 text-md font-semibold text-blue-600">Uploading Video</p>
           </div>
         </div>
-      )}
+      )} 
+      {
+        success && (
+          <div>Your video has been uploaded!</div>
+        )
+      }
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="label">
