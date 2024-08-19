@@ -33,11 +33,15 @@ export default function Upload() {
       });
       console.log("Signature received:", signatureData);
   
+      if (!signatureData || !signatureData.timestamp) {
+        throw new Error("Invalid signature data received");
+      }
+  
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("api_key", signatureData.apiKey);
+      formData.append("api_key", signatureData.apiKey || '');
       formData.append("timestamp", signatureData.timestamp.toString());
-      formData.append("signature", signatureData.signature);
+      formData.append("signature", signatureData.signature || '');
       formData.append("folder", "MediaByte/videos");
       formData.append("resource_type", "video");
   
@@ -48,13 +52,17 @@ export default function Upload() {
       );
       console.log("Cloudinary response:", cloudinaryResponse.data);
   
+      if (!cloudinaryResponse.data || !cloudinaryResponse.data.public_id) {
+        throw new Error("Invalid response from Cloudinary");
+      }
+  
       console.log("Sending video details to server...");
       const response = await axios.post("/api/uploadVideo", {
         title,
         description,
         publicId: cloudinaryResponse.data.public_id,
-        duration: cloudinaryResponse.data.duration,
-        bytes: cloudinaryResponse.data.bytes,
+        duration: cloudinaryResponse.data.duration || 0,
+        bytes: cloudinaryResponse.data.bytes || 0,
         originalSize: file.size.toString(),
       });
       console.log("Server response:", response.data);
@@ -73,6 +81,8 @@ export default function Upload() {
       setUplaoding(false);
     }
   };
+
+  
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4 text-blue-600">Upload Video</h1>
