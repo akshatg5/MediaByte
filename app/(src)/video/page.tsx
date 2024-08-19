@@ -13,22 +13,26 @@ export default function Upload() {
   // max file size of 70mb
 
   const MAX_FILE_SIZE = 70 * 1024 * 1024;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return "No file available check again!";
+    if (!file) {
+      console.error("No file available");
+      return;
+    }
     if (file.size > MAX_FILE_SIZE) {
-      // remove alerts from here and add a pop up notifcation system
+      console.error("File size is too large");
       alert("File size is too large.");
       return;
     }
     setUplaoding(true);
-
+  
     try {
-      const {data : signatureData} = await axios.post("/api/getSignature",{
-        folder : "MediaByte/videos"
+      console.log("Getting signature...");
+      const { data: signatureData } = await axios.post("/api/getSignature", {
+        folder: "MediaByte/videos"
       });
-      // Prepare form data for Cloudinary
+      console.log("Signature received:", signatureData);
+  
       const formData = new FormData();
       formData.append("file", file);
       formData.append("api_key", signatureData.apiKey);
@@ -36,15 +40,16 @@ export default function Upload() {
       formData.append("signature", signatureData.signature);
       formData.append("folder", "MediaByte/videos");
       formData.append("resource_type", "video");
-
-      // Upload to Cloudinary
+  
+      console.log("Uploading to Cloudinary...");
       const cloudinaryResponse = await axios.post(
         `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/video/upload`,
         formData
       );
-
-       // Send video details to your API
-       const response = await axios.post("/api/uploadVideo", {
+      console.log("Cloudinary response:", cloudinaryResponse.data);
+  
+      console.log("Sending video details to server...");
+      const response = await axios.post("/api/uploadVideo", {
         title,
         description,
         publicId: cloudinaryResponse.data.public_id,
@@ -52,17 +57,22 @@ export default function Upload() {
         bytes: cloudinaryResponse.data.bytes,
         originalSize: file.size.toString(),
       });
+      console.log("Server response:", response.data);
+  
       if (response.status === 200) {
         setSuccess(true);
         router.push("/home");
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error during upload:", error);
+      if (axios.isAxiosError(error)) {
+        console.error("Response data:", error.response?.data);
+        console.error("Response status:", error.response?.status);
+      }
     } finally {
       setUplaoding(false);
     }
   };
-
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4 text-blue-600">Upload Video</h1>
