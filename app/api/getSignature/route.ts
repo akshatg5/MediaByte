@@ -17,20 +17,20 @@ export async function POST (req:NextRequest) {
         }
 
         const {folder} = await req.json()
-        const timeStamp = Math.round((new Date).getTime() / 1000);
+        const timestamp = Math.round((new Date).getTime() / 1000);
 
         if (!process.env.CLOUDINARY_API_SECRET) {
             return NextResponse.json({message : "Server side error!"},{status : 500})
         }
 
         const signature = cloudinary.utils.api_sign_request({
-            timestamp : timeStamp,
+            timestamp : timestamp,
             folder : folder
         },process.env.CLOUDINARY_API_SECRET )
 
         return NextResponse.json({
             signature,
-            timeStamp,
+            timestamp,
             cloudname : process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
         })
     } catch (error) {
