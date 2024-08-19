@@ -1,19 +1,19 @@
 "use client";
-// sign-in/page.tsx
+
 import { useSignIn } from "@clerk/nextjs";
-import axios from "axios";
-import { Fullscreen } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import SignUpForm from "../../sign-up/[[...sign-up]]/page";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { syncUserWithDb } from "@/utils/SyncUserWithDb";
+import { Fullscreen } from "lucide-react";
 
 const SignInForm = () => {
-  const { signIn } = useSignIn(); // Get Clerk's signIn method
+  const { signIn } = useSignIn();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,37 +27,31 @@ const SignInForm = () => {
       if (result?.status === "complete") {
         await syncUserWithDb({
           email,
-          firstName: result.userData.firstName || "",
-          lastName: result.userData.lastName || "",
+          firstName: result.userData?.firstName || "",
+          lastName: result.userData?.lastName || "",
           auth_type: "Local",
         });
+        router.push("/home");
       } else {
-        setError("Failed to sign in.Please check your credentials!");
+        setError("Failed to sign in. Please check your credentials!");
       }
     } catch (err) {
       setError("Failed to sign in. Please check your credentials.");
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    const userExists = await axios.get("/api/user/user-exists", {
-      params: email,
-    });
-    if (!userExists.data.success) {
-      setError("Email not found,please sign in first!");
-      window.location.href = "/sign-up";
-    } else {
-      try {
-        console.log("Signin in with google");
-        const response = await signIn?.authenticateWithRedirect({
-          strategy: "oauth_google",
-          redirectUrl: "/auth-callback",
-          redirectUrlComplete: "/home",
-        });
-        console.log("Tried signin in with google", response);
-      } catch (error) {
-        setError("Failed to sign in with google.Try again!");
-      }
+  const handleGoogleSignIn = () => {
+    try {
+      //@ts-ignore
+      signIn?.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/auth-callback",
+        redirectUrlComplete: "/home",
+      });
+    } catch (error) {
+      router.push("/sign-up");
+      console.error("Failed to initiate Google sign-in:", error);
+      setError("Failed to sign in with Google. Please try again!");
     }
   };
 
@@ -106,8 +100,9 @@ const SignInForm = () => {
           </button>
         </form>
 
-        <hr className="my-6 border-gray-300" />
-
+        <hr className="mt-4 mb-2 border-gray-300" />
+      
+        <p className="text-black text-sm my-2">If you don't have an existing account, please sign up first!</p>
         <button
           onClick={handleGoogleSignIn}
           className="w-full h-[3rem] text-white bg-black rounded-md flex justify-center items-center p-2"

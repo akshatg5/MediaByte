@@ -29,7 +29,10 @@ export default function AuthCallback() {
           setIsLoading(false);
         }
       } else {
-        setIsLoading(false);
+        setTimeout(() => {
+          setError("Authentication Failed. Please sign up first!");
+          setIsLoading(false);
+        }, 4000);
       }
     };
 
