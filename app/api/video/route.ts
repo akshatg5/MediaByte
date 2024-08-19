@@ -5,9 +5,7 @@ const prisma = new PrismaClient()
 
 export async function GET(req: NextRequest) {
     try {
-        const videos = await prisma.video.findMany({
-            orderBy : {createdAt : "desc"}
-        })
+        const videos = await prisma.video.findMany({})
         return NextResponse.json(videos)
     } catch (error) {
         return NextResponse.json({error : "Error fetching the videos."},{status : 500})
