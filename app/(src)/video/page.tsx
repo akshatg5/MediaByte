@@ -10,7 +10,7 @@ export default function Upload() {
   const [uploading, setUplaoding] = useState(false);
   const [success,setSuccess] = useState(false)
   const router = useRouter();
-  // max file size of 60mb
+  // max file size of 70mb
 
   const MAX_FILE_SIZE = 70 * 1024 * 1024;
 
@@ -23,23 +23,43 @@ export default function Upload() {
       return;
     }
     setUplaoding(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("orignalSize", file.size.toString());
 
     try {
-      const response = await axios.post("/api/uploadVideo", formData);
-      // check for status code todo
-      if (response.status == 200) {
-        router.push("/home")
+      const {data : signatureData} = await axios.post("/api/getSignature",{
+        folder : "MediaByte/videos"
+      });
+      // Prepare form data for Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", signatureData.apiKey);
+      formData.append("timestamp", signatureData.timestamp.toString());
+      formData.append("signature", signatureData.signature);
+      formData.append("folder", "MediaByte/videos");
+      formData.append("resource_type", "video");
+
+      // Upload to Cloudinary
+      const cloudinaryResponse = await axios.post(
+        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/video/upload`,
+        formData
+      );
+
+       // Send video details to your API
+       const response = await axios.post("/api/uploadVideo", {
+        title,
+        description,
+        publicId: cloudinaryResponse.data.public_id,
+        duration: cloudinaryResponse.data.duration,
+        bytes: cloudinaryResponse.data.bytes,
+        originalSize: file.size.toString(),
+      });
+      if (response.status === 200) {
+        setSuccess(true);
+        router.push("/home");
       }
     } catch (error) {
       console.log(error);
     } finally {
       setUplaoding(false);
-      router.push("/home")
     }
   };
 
