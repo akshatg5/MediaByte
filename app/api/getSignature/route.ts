@@ -31,7 +31,8 @@ export async function POST (req:NextRequest) {
         return NextResponse.json({
             signature,
             timestamp,
-            cloudname : process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+            cloudname : process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+            apiKey: process.env.CLOUDINARY_API_KEY
         })
     } catch (error) {
         console.error("Error generating the signature:",error)
