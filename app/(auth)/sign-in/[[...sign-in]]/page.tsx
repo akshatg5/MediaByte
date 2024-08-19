@@ -102,7 +102,7 @@ const SignInForm = () => {
 
         <hr className="mt-4 mb-2 border-gray-300" />
       
-        <p className="text-black text-sm my-2">If you don't have an existing account, please sign up first!</p>
+        <p className="text-black text-sm my-2">If you don&apos;t have an existing account, please sign up first!</p>
         <button
           onClick={handleGoogleSignIn}
           className="w-full h-[3rem] text-white bg-black rounded-md flex justify-center items-center p-2"
