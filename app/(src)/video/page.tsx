@@ -47,7 +47,7 @@ export default function Upload() {
   
       console.log("Uploading to Cloudinary...");
       const cloudinaryResponse = await axios.post(
-        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/video/upload`,
+        `https://api.cloudinary.com/v1_1/${signatureData.cloudname}/video/upload`,
         formData
       );
       console.log("Cloudinary response:", cloudinaryResponse.data);
