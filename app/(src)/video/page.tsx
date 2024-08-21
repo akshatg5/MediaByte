@@ -73,7 +73,7 @@ export default function Upload() {
     formData.append("signature", signatureData.signature || '');
     formData.append("folder", "MediaByte/videos");
     formData.append("resource_type", "video");
-    formData.append("transformation", "c_limit,w_640,h_360");
+    // formData.append("transformation", "c_limit,w_640,h_360");
   
     const cloudinaryResponse = await axios.post(
       `https://api.cloudinary.com/v1_1/${signatureData.cloudname}/video/upload`,
