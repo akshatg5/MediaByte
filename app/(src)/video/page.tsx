@@ -27,44 +27,18 @@ export default function Upload() {
     setUplaoding(true);
   
     try {
-      const { data: signatureData } = await axios.post("/api/getSignature", {
-        folder: "MediaByte/videos"
-      });
-      
-      if (!signatureData || !signatureData.timestamp) {
-        throw new Error("Invalid signature data received");
-      }
-  
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", signatureData.apiKey || '');
-      formData.append("timestamp", signatureData.timestamp.toString());
-      formData.append("signature", signatureData.signature || '');
-      formData.append("folder", "MediaByte/videos");
-      formData.append("resource_type", "video");
-      // formData.append("transformation","c_limit,w_640,h_360");
-  
-      console.log("Uploading to Cloudinary...");
-      const cloudinaryResponse = await axios.post(
-        `https://api.cloudinary.com/v1_1/${signatureData.cloudname}/video/upload`,
-        formData
-      );
-      console.log("Cloudinary response:", cloudinaryResponse.data);
-  
-      if (!cloudinaryResponse.data || !cloudinaryResponse.data.public_id) {
-        throw new Error("Invalid response from Cloudinary");
-      }
-  
-      const response = await axios.post("/api/uploadVideo", {
+      const signatureData = await getSignatureData();
+      const cloudinaryResponse = await uploadToCloudinary(signatureData, file);
+      const uploadResponse = await uploadVideoToAPI(
         title,
         description,
-        publicId: cloudinaryResponse.data.public_id,
-        duration: cloudinaryResponse.data.duration || 0,
-        bytes: cloudinaryResponse.data.bytes || 0,
-        originalSize: file.size.toString(),
-      });
+        cloudinaryResponse.public_id,
+        cloudinaryResponse.duration,
+        cloudinaryResponse.bytes,
+        file.size.toString()
+      );
   
-      if (response.status === 200) {
+      if (uploadResponse.status === 200) {
         setSuccess(true);
         router.push("/home");
       }
@@ -78,7 +52,64 @@ export default function Upload() {
       setUplaoding(false);
     }
   };
-
+  
+  const getSignatureData = async () => {
+    const { data: signatureData } = await axios.post("/api/getSignature", {
+      folder: "MediaByte/videos",
+    });
+  
+    if (!signatureData || !signatureData.timestamp) {
+      throw new Error("Invalid signature data received");
+    }
+  
+    return signatureData;
+  };
+  
+  const uploadToCloudinary = async (signatureData: any, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("api_key", signatureData.apiKey || '');
+    formData.append("timestamp", signatureData.timestamp.toString());
+    formData.append("signature", signatureData.signature || '');
+    formData.append("folder", "MediaByte/videos");
+    formData.append("resource_type", "video");
+    formData.append("transformation", "c_limit,w_640,h_360");
+  
+    const cloudinaryResponse = await axios.post(
+      `https://api.cloudinary.com/v1_1/${signatureData.cloudname}/video/upload`,
+      formData
+    );
+  
+    if (!cloudinaryResponse.data || !cloudinaryResponse.data.public_id) {
+      throw new Error("Invalid response from Cloudinary");
+    }
+  
+    return {
+      public_id: cloudinaryResponse.data.public_id,
+      duration: cloudinaryResponse.data.duration || 0,
+      bytes: cloudinaryResponse.data.bytes || 0,
+    };
+  };
+  
+  const uploadVideoToAPI = async (
+    title: string,
+    description: string,
+    publicId: string,
+    duration: number,
+    bytes: number,
+    originalSize: string
+  ) => {
+    const response = await axios.post("/api/uploadVideo", {
+      title,
+      description,
+      publicId,
+      duration,
+      bytes,
+      originalSize,
+    });
+  
+    return response;
+  };
   
   return (
     <div className="container mx-auto p-4">
