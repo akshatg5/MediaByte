@@ -27,12 +27,10 @@ export default function Upload() {
     setUplaoding(true);
   
     try {
-      console.log("Getting signature...");
       const { data: signatureData } = await axios.post("/api/getSignature", {
         folder: "MediaByte/videos"
       });
-      console.log("Signature received:", signatureData);
-  
+      
       if (!signatureData || !signatureData.timestamp) {
         throw new Error("Invalid signature data received");
       }
@@ -44,6 +42,7 @@ export default function Upload() {
       formData.append("signature", signatureData.signature || '');
       formData.append("folder", "MediaByte/videos");
       formData.append("resource_type", "video");
+      formData.append("transformation","c_limit,w_640,h_360");
   
       console.log("Uploading to Cloudinary...");
       const cloudinaryResponse = await axios.post(
@@ -56,7 +55,6 @@ export default function Upload() {
         throw new Error("Invalid response from Cloudinary");
       }
   
-      console.log("Sending video details to server...");
       const response = await axios.post("/api/uploadVideo", {
         title,
         description,
@@ -65,7 +63,6 @@ export default function Upload() {
         bytes: cloudinaryResponse.data.bytes || 0,
         originalSize: file.size.toString(),
       });
-      console.log("Server response:", response.data);
   
       if (response.status === 200) {
         setSuccess(true);
