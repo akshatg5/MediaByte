@@ -15,7 +15,10 @@ interface VideoCardProps {
   onDownload: (url: string, title: string) => void;
 }
 
-const VideoCard: React.FC<VideoCardProps> = ({ video:initialVideo, onDownload }) => {
+const VideoCard: React.FC<VideoCardProps> = ({
+  video: initialVideo,
+  onDownload,
+}) => {
   const { user } = useClerk();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -116,14 +119,15 @@ const VideoCard: React.FC<VideoCardProps> = ({ video:initialVideo, onDownload })
 
   const compressVideo = async () => {
     try {
-      const response = await axios.post(`/api/compressVideo/${video.publicId}`, {
-        publicId: video.publicId
+      const response = await axios.post("/api/compressVideo", {
+        publicId: video.publicId,
       });
       if (response.status === 200) {
-        const { compressedSize } = response.data;
+        const { compressedSize, compressedUrl } = response.data;
         setVideo((prevVideo) => ({
           ...prevVideo,
           compressedSize: compressedSize.toString(),
+          compressedUrl: compressedUrl,
         }));
         setIsCompressed(true);
       }
@@ -187,6 +191,14 @@ const VideoCard: React.FC<VideoCardProps> = ({ video:initialVideo, onDownload })
                 <div>
                   <div className="font-semibold">Compressed</div>
                   <div>{formatFileSize(Number(video.compressedSize))}</div>
+                  <a
+                    href={video.compressedUrl || "/home"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:underline"
+                  >
+                    View Compressed
+                  </a>
                 </div>
               </div>
             ) : (
@@ -194,7 +206,10 @@ const VideoCard: React.FC<VideoCardProps> = ({ video:initialVideo, onDownload })
                 <FileDown size={18} className="mr-2 text-secondary" />
                 <div>
                   <div className="font-semibold">
-                    <button onClick={compressVideo} className="bg-white text-black rounded-xl text-xs p-2">
+                    <button
+                      onClick={compressVideo}
+                      className="bg-white text-black rounded-xl text-xs p-2"
+                    >
                       Compress Video
                     </button>
                   </div>

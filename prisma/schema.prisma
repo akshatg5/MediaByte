@@ -28,9 +28,10 @@ model Video {
   id             String   @id @default(uuid())
   title          String
   description    String?
-  publicId       String
+  publicId       String   @unique
   orignalSize    String
-  compressedSize String
+  compressedSize String?
+  compressedUrl  String?
   uploadedById   String
   uploadedBy     User     @relation(fields: [uploadedById], references: [id], name: "UploadedVideos")
   duration       Float
