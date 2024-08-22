@@ -12,10 +12,15 @@ function Home() {
 
   const fetchVideos = useCallback(async () => {
     try {
-      const response = await axios.get("/api/video",{
-        headers :{
-          'Cache-Control' : 'no-cache'
-        }
+      const response = await axios.get("/api/video", {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+        params: {
+          _ts: new Date().getTime(), 
+        },
       });
       console.log("API response:", response.data);
       if (Array.isArray(response.data)) {
