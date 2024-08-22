@@ -20,21 +20,27 @@ export async function POST(req: NextRequest) {
       resource_type: "video",
       transformation: [
         { width: 640, height: 360, crop: "limit" },
-        { quality: "auto" },
-        { fetch_format: "auto" },
+        { quality: "auto:low" }, // Use lower quality
+        { fetch_format: "mp4" },
+        { codec: "h264" }, // Specify codec for better compression
+        { profile: "baseline" }, // Use baseline profile for wider compatibility
+        { level: "3.0" }, // Set level for compression
       ],
     });
+
 
     // Get the details of the compressed video
     const result = await cloudinary.api.resource(publicId, {
       resource_type: "video",
       transformations: [
         { width: 640, height: 360, crop: "limit" },
-        { quality: "auto" },
-        { fetch_format: "auto" },
+        { quality: "auto:low" },
+        { fetch_format: "mp4" },
+        { codec: "h264" },
+        { profile: "baseline" },
+        { level: "3.0" },
       ],
     });
-
     const compressedSize = result.bytes;
 
     // Update the video record in the database
