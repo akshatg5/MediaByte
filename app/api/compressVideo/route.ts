@@ -15,45 +15,42 @@ export async function POST(req: NextRequest) {
   const { publicId } = await req.json();
 
   try {
-    // Generate the compressed video URL
+    const transformation = [
+      { width: 640, height: 360, crop: "limit" },
+      { quality: "auto:low" },
+      { fetch_format: "mp4" },
+      { codec: "h264" },
+      { profile: "baseline" },
+      { level: "3.0" },
+    ];
+
     const compressedUrl = cloudinary.url(publicId, {
       resource_type: "video",
-      transformation: [
-        { width: 640, height: 360, crop: "limit" },
-        { quality: "auto:low" }, // Use lower quality
-        { fetch_format: "mp4" },
-        { codec: "h264" }, // Specify codec for better compression
-        { profile: "baseline" }, // Use baseline profile for wider compatibility
-        { level: "3.0" }, // Set level for compression
-      ],
+      transformation: transformation,
     });
 
-
-    // Get the details of the compressed video
     const result = await cloudinary.api.resource(publicId, {
       resource_type: "video",
-      transformations: [
-        { width: 640, height: 360, crop: "limit" },
-        { quality: "auto:low" },
-        { fetch_format: "mp4" },
-        { codec: "h264" },
-        { profile: "baseline" },
-        { level: "3.0" },
-      ],
+      transformations: transformation,
     });
+
     const compressedSize = result.bytes;
 
-    // Update the video record in the database
-    await prisma.video.update({
+    const updatedVideo = await prisma.video.update({
       where: { publicId: publicId },
-      data: { compressedSize: compressedSize.toString() },
+      data: { 
+        compressedSize: compressedSize.toString(),
+        compressedUrl: compressedUrl
+      },
     });
 
-    return NextResponse.json({ compressedSize, compressedUrl},{status : 200});
+    return NextResponse.json({ 
+      compressedSize, 
+      compressedUrl,
+      updatedVideo
+    }, { status: 200 });
   } catch (error) {
     console.error("Error compressing video:", error);
-    return NextResponse.json({ error: "Error compressing video."},{status : 500});
-  } finally {
-    await prisma.$disconnect();
+    return NextResponse.json({ error: "Failed to compress video" }, { status: 500 });
   }
 }
