@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-
-// Create a single instance of PrismaClient to be reused
-const prisma = new PrismaClient();
+import prisma from "@/prisma/index"
 
 export async function POST(req: NextRequest) {
   try {
