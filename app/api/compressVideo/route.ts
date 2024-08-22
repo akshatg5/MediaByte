@@ -24,29 +24,34 @@ export async function POST(req: NextRequest) {
       { level: "3.0" },
     ];
 
-    const compressedUrl = cloudinary.url(publicId, {
+    // creating a new compressed video instead of compressing the orignal video and doing this from the server side
+    const compressedVideo = await cloudinary.uploader.explicit(publicId, {
+      type: "upload",
       resource_type: "video",
-      transformation: transformation,
+      eager: transformation,
+      eager_async: false,
     });
 
-    const result = await cloudinary.api.resource(publicId, {
-      resource_type: "video",
-      transformations: transformation,
-    });
+    // The new compressed video details
+    const compressedPublicId = compressedVideo.eager[0].public_id;
+    const compressedFormat = compressedVideo.eager[0].format;
+    const compressedUrl = compressedVideo.eager[0].secure_url;
+    const compressedSize = compressedVideo.eager[0].bytes;
 
-    const compressedSize = result.bytes;
-
+    // Update the video record in the database
     const updatedVideo = await prisma.video.update({
       where: { publicId: publicId },
       data: { 
         compressedSize: compressedSize.toString(),
-        compressedUrl: compressedUrl
+        compressedUrl: compressedUrl,
+        compressedPublicId: compressedPublicId,
       },
     });
 
     return NextResponse.json({ 
       compressedSize, 
       compressedUrl,
+      compressedPublicId,
       updatedVideo
     }, { status: 200 });
   } catch (error) {

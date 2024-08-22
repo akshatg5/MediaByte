@@ -123,7 +123,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
         publicId: video.publicId,
       });
       if (response.status === 200) {
-        const { compressedSize, compressedUrl, updatedVideo } = response.data;
+        const { compressedSize, compressedUrl, compressedPublicId, updatedVideo } = response.data;
         setVideo(updatedVideo);
         setIsCompressed(true);
       }
