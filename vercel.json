@@ -1,9 +1,8 @@
 {
   "version": 2,
-  "functions" : {
-    "pages/api/compressVideo/**/*.js" : {
-      "maxDuration" : 60
+  "functions": {
+    "pages/api/compressVideo.ts": {
+      "maxDuration": 60
     }
   }
 }
-
