@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/prisma/index"
-import { NextApiRequest, NextApiResponse } from "next";
+import prisma from "@/prisma/index";
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(req: NextRequest) {
   try {
     const videos = await prisma.video.findMany({});
-    const response = NextResponse.json(videos);
-    res.setHeader(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate"
-    );
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-    res.setHeader("Surrogate-Control", "no-store");
 
-    return res.status(200).json(videos);
+    // Create a NextResponse with the data
+    const response = NextResponse.json(videos);
+
+    // Set the necessary headers to prevent caching
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+    response.headers.set("Surrogate-Control", "no-store");
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: "Error fetching the videos." },
