@@ -1,3 +1,4 @@
+"use client"
 import { getCldImageUrl, getCldVideoUrl } from "next-cloudinary";
 import { Download, Clock, FileDown, FileUp, Clock1 } from "lucide-react";
 import dayjs from "dayjs";
