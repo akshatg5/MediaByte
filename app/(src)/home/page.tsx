@@ -1,48 +1,21 @@
-import { GetServerSideProps } from "next";
-import { PrismaClient, Video } from "@prisma/client";
+import { PrismaClient, Video } from "@prisma/client"; // Import Video type
 import VideoCard from "@/components/VideoCard";
-import { useCallback } from "react";
 
 const prisma = new PrismaClient();
 
-interface HomePageProps {
-  videos: Video[];
-  error: string | null;
-}
+export default async function Home() {
+  let videos: Video[] = []; // Explicitly define the type as an array of Video
+  let error: string | null = null;
 
-export const getServerSideProps: GetServerSideProps = async () => {
   try {
-    const videos = await prisma.video.findMany();
-    return {
-      props: {
-        videos,
-        error: null,
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching videos:", error);
-    return {
-      props: {
-        videos: [],
-        error: "Failed to fetch videos",
-      },
-    };
+    videos = await prisma.video.findMany();
+  } catch (err) {
+    console.error("Error fetching videos:", err);
+    error = "Failed to fetch videos";
   } finally {
     await prisma.$disconnect();
   }
-};
 
-const handleDownload = useCallback((url: string, title: string) => {
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", `${title}.mp4`);
-  link.setAttribute("target", "_blank");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}, []);
-
-function Home({ videos, error }: HomePageProps) {
   if (error) {
     return <div className="text-center text-red-500">{error}</div>;
   }
@@ -63,12 +36,18 @@ function Home({ videos, error }: HomePageProps) {
           <VideoCard
             key={video.id}
             video={video}
-            onDownload={handleDownload}
+            onDownload={(url: string, title: string) => {
+              const link = document.createElement("a");
+              link.href = url;
+              link.setAttribute("download", `${title}.mp4`);
+              link.setAttribute("target", "_blank");
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
           />
         ))}
       </div>
     </div>
   );
 }
-
-export default Home;
