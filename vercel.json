@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions" : {
-    "api/compressVideo/route.ts" : {
+    "pages/api/compressVideo/**/*.js" : {
       "maxDuration" : 60
     }
   }
