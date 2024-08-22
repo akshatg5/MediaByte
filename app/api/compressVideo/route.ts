@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
+import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
@@ -10,8 +11,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
-  const { publicId } = req.body;
+export async function POST(req: NextRequest) {
+  const { publicId } = await req.json();
 
   try {
     // Generate the compressed video URL
@@ -42,10 +43,10 @@ export async function POST(req: NextApiRequest, res: NextApiResponse) {
       data: { compressedSize: compressedSize.toString() },
     });
 
-    return res.status(200).json({ compressedSize, compressedUrl });
+    return NextResponse.json({ compressedSize, compressedUrl},{status : 200});
   } catch (error) {
     console.error("Error compressing video:", error);
-    return res.status(500).json({ error: "Error compressing video." });
+    return NextResponse.json({ error: "Error compressing video."},{status : 500});
   } finally {
     await prisma.$disconnect();
   }
