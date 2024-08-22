@@ -1,3 +1,5 @@
+// pages/api/compressVideo/[...publicId].ts
+
 import { PrismaClient } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -46,6 +48,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.$disconnect();
     }
   } else {
-    return res.status(404).json({ error: 'Not found' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 }
