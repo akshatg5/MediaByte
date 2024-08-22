@@ -1,33 +1,52 @@
-import React from 'react';
-import axios from 'axios';
-import VideoCard from '@/components/VideoCard';
-import { Video } from '@prisma/client';
-import Loading from '../loading';
-import { PrismaClient } from '@prisma/client';
+"use client";
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import VideoCard from "@/components/VideoCard";
+import { Video } from "@prisma/client";
+import Loading from "../loading";
 
-const prisma = new PrismaClient();
+function Home() {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-async function getVideos() {
-  try {
-    const videos = await prisma.video.findMany();
-    return { videos };
-  } catch (error) {
-    console.error('Error fetching videos:', error);
-    return { error: 'Failed to fetch videos' };
-  } finally {
-    await prisma.$disconnect();
+  const fetchVideos = useCallback(async () => {
+    try {
+      const response = await axios.get("/api/video");
+      console.log("API response:", response.data);
+      if (Array.isArray(response.data)) {
+        setVideos(response.data);
+      } else {
+        throw new Error("Unexpected response format");
+      }
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+      setError("Failed to fetch videos");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchVideos();
+  }, [fetchVideos]);
+
+  const handleDownload = useCallback((url: string, title: string) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${title}.mp4`);
+    link.setAttribute("target", "_blank");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, []);
+
+  if (loading) {
+    return <Loading />;
   }
-}
-
-export default async function Home() {
-  const { videos, error } = await getVideos();
 
   if (error) {
     return <div className="text-center text-red-500">{error}</div>;
-  }
-
-  if (!videos) {
-    return <Loading />;
   }
 
   return (
@@ -43,15 +62,7 @@ export default async function Home() {
             <VideoCard
               key={video.id}
               video={video}
-              onDownload={(url, title) => {
-                const link = document.createElement("a");
-              link.href = url;
-              link.setAttribute("download", `${title}.mp4`);
-              link.setAttribute("target", "_blank");
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              }}
+              onDownload={handleDownload}
             />
           ))}
         </div>
@@ -59,3 +70,5 @@ export default async function Home() {
     </div>
   );
 }
+
+export default Home;
