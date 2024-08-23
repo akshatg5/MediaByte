@@ -19,16 +19,16 @@ export default function Home() {
           </div>
           <h1 className="text-3xl font-bold ml-2 text-blue-600">MediaByte</h1>
         </div>
-        <div>
+        <div className="max-sm:flex max-sm:flex-col max-sm:mr-5">
           <Link
             href="/sign-in"
-            className="mr-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300 shadow-md hover:shadow-lg"
+            className="mr-4 max-sm:mr-0 px-4 py-2 max-sm:my-1 max-sm:text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300 shadow-md hover:shadow-lg"
           >
             Sign In
           </Link>
           <Link
             href="/sign-up"
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-300 shadow-md hover:shadow-lg"
+            className="px-4 py-2 max-sm:my-1 max-sm:text-xs bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-300 shadow-md hover:shadow-lg"
           >
             Sign Up
           </Link>
