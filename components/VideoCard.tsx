@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { getCldImageUrl, getCldVideoUrl } from "next-cloudinary";
 import { Download, Clock, FileDown, FileUp, Clock1 } from "lucide-react";
 import dayjs from "dayjs";
@@ -13,13 +13,9 @@ dayjs.extend(relativeTime);
 
 interface VideoCardProps {
   video: Video;
-  onDownload: (url: string, title: string) => void;
 }
 
-const VideoCard: React.FC<VideoCardProps> = ({
-  video: initialVideo,
-  onDownload,
-}) => {
+const VideoCard: React.FC<VideoCardProps> = ({ video: initialVideo }) => {
   const { user } = useClerk();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -124,7 +120,12 @@ const VideoCard: React.FC<VideoCardProps> = ({
         publicId: video.publicId,
       });
       if (response.status === 200) {
-        const { compressedSize, compressedUrl, compressedPublicId, updatedVideo } = response.data;
+        const {
+          compressedSize,
+          compressedUrl,
+          compressedPublicId,
+          updatedVideo,
+        } = response.data;
         setVideo(updatedVideo);
         setIsCompressed(true);
       }

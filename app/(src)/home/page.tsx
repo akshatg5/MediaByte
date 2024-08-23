@@ -1,60 +1,15 @@
-"use client";
-import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+// Remove the "use client" directive
 import VideoCard from "@/components/VideoCard";
 import { Video } from "@prisma/client";
-import Loading from "../loading";
-import next from "next";
+import prisma from '@/prisma/index'; // Adjust the import path as needed
 
-function Home() {
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function getVideos() {
+  const videos = await prisma.video.findMany();
+  return videos;
+}
 
-  const fetchVideos = useCallback(async () => {
-    try {
-      const response = await fetch("/api/video", {
-        cache: "no-store",
-        next: {
-          tags: ["video"],
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const data: Video[] = await response.json();
-      setVideos(data);
-    } catch (error) {
-      console.error("Error fetching videos:", error);
-      setError("Failed to fetch videos");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
-
-  const handleDownload = useCallback((url: string, title: string) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `${title}.mp4`);
-    link.setAttribute("target", "_blank");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, []);
-
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <div className="text-center text-red-500">{error}</div>;
-  }
+export default async function Home() {
+  const videos = await getVideos();
 
   return (
     <div className="container mx-auto p-4">
@@ -69,7 +24,6 @@ function Home() {
             <VideoCard
               key={video.id}
               video={video}
-              onDownload={handleDownload}
             />
           ))}
         </div>
@@ -77,5 +31,3 @@ function Home() {
     </div>
   );
 }
-
-export default Home;
