@@ -12,22 +12,16 @@ function Home() {
 
   const fetchVideos = useCallback(async () => {
     try {
-      const response = await axios.get("/api/video", {
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-        },
-        params: {
-          _ts: new Date().getTime(), 
-        },
+      const response = await fetch("/api/video", {
+        cache: "no-store",
       });
-      console.log("API response:", response.data);
-      if (Array.isArray(response.data)) {
-        setVideos(response.data);
-      } else {
-        throw new Error("Unexpected response format");
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
       }
+
+      const data: Video[] = await response.json(); 
+      setVideos(data);
     } catch (error) {
       console.error("Error fetching videos:", error);
       setError("Failed to fetch videos");
