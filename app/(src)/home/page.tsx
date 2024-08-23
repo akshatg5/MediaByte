@@ -4,6 +4,7 @@ import axios from "axios";
 import VideoCard from "@/components/VideoCard";
 import { Video } from "@prisma/client";
 import Loading from "../loading";
+import next from "next";
 
 function Home() {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -14,13 +15,16 @@ function Home() {
     try {
       const response = await fetch("/api/video", {
         cache: "no-store",
+        next: {
+          tags: ["video"],
+        },
       });
 
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
 
-      const data: Video[] = await response.json(); 
+      const data: Video[] = await response.json();
       setVideos(data);
     } catch (error) {
       console.error("Error fetching videos:", error);
