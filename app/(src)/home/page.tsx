@@ -1,27 +1,16 @@
-"use client";
-import React from "react";
 import VideoCard from "@/components/VideoCard";
 import Loading from "../loading";
-import prisma from "@/prisma/index" 
-
-// TypeScript interfaces
+import prisma from "@/prisma/index";
 import { Video } from "@prisma/client";
 
-interface HomeProps {
-  videos: Video[];
-}
+const Home = async () => {
+  let videos: Video[] = [];
 
-function Home({ videos }: HomeProps) {
-  // No need for useState or useEffect since data is fetched at build time
-  const handleDownload = React.useCallback((url: string, title: string) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `${title}.mp4`);
-    link.setAttribute("target", "_blank");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, []);
+  try {
+    videos = await prisma.video.findMany();
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+  }
 
   if (!videos || videos.length === 0) {
     return (
@@ -33,7 +22,6 @@ function Home({ videos }: HomeProps) {
       </div>
     );
   }
-
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl text-blue-600 font-bold mb-4">Videos</h1>
@@ -48,19 +36,16 @@ function Home({ videos }: HomeProps) {
       </div>
     </div>
   );
-}
+};
+
+const handleDownload = (url: string, title: string) => {
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `${title}.mp4`);
+  link.setAttribute("target", "_blank");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 export default Home;
-
-// Fetch data at build time
-export async function getStaticProps() {
-  // Fetch videos from the database using Prisma
-  const videos = await prisma.video.findMany();
-
-  return {
-    props: {
-      videos,
-    },
-    revalidate: 10, // ISR: re-generate the page every 10 seconds if a request comes in
-  };
-}
