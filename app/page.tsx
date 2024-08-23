@@ -103,7 +103,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex space-x-6">
-            {["GitHub", "LinkedIn", "Other Projects"].map((item, index) => (
+            {["GitHub", "LinkedIn", "Other Projects","GitHub Repo"].map((item, index) => (
               <motion.a
                 key={index}
                 href={
@@ -111,6 +111,7 @@ export default function Home() {
                     "https://github.com/akshatg5",
                     "https://www.linkedin.com/in/akshat-girdhar-56a848206/",
                     "https://akshatgirdhar-portfolio.vercel.app/",
+                    "https://github.com/akshatg5/MediaByte"
                   ][index]
                 }
                 target="_blank"
