@@ -130,7 +130,14 @@ export default function Upload() {
           <input
             type="file"
             accept="video/*"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            onChange={(e) => {
+              const selectedFile = e.target.files?.[0] || null;
+              if (selectedFile && selectedFile.size > MAX_FILE_SIZE) {
+                alert("File size exceeds the 50MB limit.");
+                return;
+              }
+              setFile(selectedFile);
+            }}
             className="file-input file-input-bordered w-full"
             required
           />

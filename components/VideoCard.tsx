@@ -116,6 +116,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video: initialVideo }) => {
 
   const compressVideo = async () => {
     try {
+      setLoading(true);
       const response = await axios.post("/api/compressVideo", {
         publicId: video.publicId,
       });
@@ -131,6 +132,8 @@ const VideoCard: React.FC<VideoCardProps> = ({ video: initialVideo }) => {
       }
     } catch (error) {
       console.error("Error compressing video:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
