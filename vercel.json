@@ -3,6 +3,9 @@
   "functions": {
     "pages/api/compressVideo.ts": {
       "maxDuration": 60
+    },
+    "pages/api/generateui.ts": {
+      "maxDuration": 60
     }
   }
 }
