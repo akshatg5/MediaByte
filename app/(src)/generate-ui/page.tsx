@@ -179,6 +179,25 @@ export default function GenerateUi() {
             </div>
           </>
         )}
+        <div className="mt-8">
+          <h2 className="text-md text-blue-500 font-semibold">Please Note:</h2>
+          <p className="text-sm text-blue-600">
+            This is just a beta version, sometimes the prompt might fail or the
+            code might not be correct.
+            <p className="text-sm text-blue-600">
+              We are currently working on improving this.
+            </p>
+            <p className="text-sm text-blue-600">Do give it a try though!</p>
+            <p className="text-sm text-blue-600">
+              If you spot any bugs or have any suggestions, hit us up on
+              <a href="https://www.linkedin.com/in/akshat-girdhar-56a848206/">
+                Linkedin
+              </a>{" "}
+              or
+              <a href="https://x.com/AkshatGirdhar2">Twitter</a>
+            </p>
+          </p>
+        </div>
       </div>
     </main>
   );
