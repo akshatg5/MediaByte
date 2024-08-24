@@ -1,20 +1,31 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 
+export const config = {
+  runtime: "edge",
+};
+
 export async function POST(req: NextRequest) {
   if (!process.env.GEMINI_API_KEY) {
-    NextResponse.json({ message: "Missing Credentials" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Missing Credentials" },
+      { status: 500 }
+    );
   }
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
   if (!genAI) {
-    NextResponse.json({ message: "Cannot get Gemini API" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Cannot get Gemini API" },
+      { status: 500 }
+    );
   }
 
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const data = await req.json();
     const userPrompt = data.body;
+
     const enhancedPrompt = `
         Create a modern, responsive React component using the following requirements:
         User's request: "${userPrompt}"
@@ -31,7 +42,7 @@ export async function POST(req: NextRequest) {
         10. Use Tailwind's built-in animations and transitions for subtle UI enhancements.
 
         Only output the JSX code for the component. Ensure the code is clean, well-formatted, and follows React best practices.
-        `;
+    `;
 
     const result = await model.generateContent(enhancedPrompt);
     const response = await result.response;
@@ -41,7 +52,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "An error occured while generating the code!" },
+      { error: "An error occurred while generating the code!" },
       { status: 500 }
     );
   }
