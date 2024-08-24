@@ -11,6 +11,7 @@ import {
   Share2Icon,
   UploadIcon,
   Fullscreen,
+  SquareMousePointer
 } from "lucide-react";
 
 const sidebarItems = [
@@ -32,6 +33,12 @@ const sidebarItems = [
     label: "Video Upload",
     description: "Upload videos,compress them!",
   },
+  {
+    href: "/generate-ui",
+    icon: SquareMousePointer,
+    label: "UI Generator(Beta)",
+    description: "Enter prompt,generate UI!",
+  }
 ];
 
 export default function AppLayout({
