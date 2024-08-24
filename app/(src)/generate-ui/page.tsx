@@ -189,12 +189,12 @@ export default function GenerateUi() {
             </p>
             <p className="text-sm text-blue-600">Do give it a try though!</p>
             <p className="text-sm text-blue-600">
-              If you spot any bugs or have any suggestions, hit us up on
-              <a href="https://www.linkedin.com/in/akshat-girdhar-56a848206/">
+              If you spot any bugs or have any suggestions, hit us up on {" "}
+              <a className="underline" href="https://www.linkedin.com/in/akshat-girdhar-56a848206/">
                 Linkedin
               </a>{" "}
-              or
-              <a href="https://x.com/AkshatGirdhar2">Twitter</a>
+              or {" "}
+              <a className="underline" href="https://x.com/AkshatGirdhar2">Twitter</a>
             </p>
           </p>
         </div>
