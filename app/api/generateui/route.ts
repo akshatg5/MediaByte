@@ -1,35 +1,25 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
-import { parse } from '@babel/parser';
-import prettier from 'prettier';
 
-export const runtime = "edge";
+// Remove edge runtime to allow for longer execution time
+// export const runtime = "edge";
 
-const validateCode = (code: string) => {
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+async function generateWithRetry(model: any, prompt: string, retries = 0): Promise<string> {
   try {
-    parse(code, {
-      sourceType: 'module',
-      plugins: ['jsx', 'typescript'],
-    });
-    return true;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
   } catch (error) {
-    console.error('Parse error:', error);
-    return false;
+    if (retries < MAX_RETRIES) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return generateWithRetry(model, prompt, retries + 1);
+    }
+    throw error;
   }
-};
-
-const formatCode = async (code: string) => {
-  try {
-    return await prettier.format(code, {
-      parser: 'babel-ts',
-      semi: true,
-      singleQuote: true,
-    });
-  } catch (error) {
-    console.error('Format error:', error);
-    return code;
-  }
-};
+}
 
 export async function POST(req: NextRequest) {
   if (!process.env.GEMINI_API_KEY) {
@@ -58,51 +48,42 @@ export async function POST(req: NextRequest) {
       User's request: "${userPrompt}"
       Guidelines:
       1. You are a UI/UX expert, specialising in javascript and tailwind css.
-      2. Return basic ui code only, just the design bit, not the state and hooks.Don't even use import React from "react";
+      2. Return basic ui code only, just the design bit, not the state and hooks.
       3. Define a single functional component named 'Component'.
-      4. Use Tailwind CSS for styling.Use dark backgrounds and light shades of text in the whole page ensure this consistency, dark backgrounds,light color text.
+      4. Use Tailwind CSS for styling. Use dark backgrounds and light shades of text consistently.
       5. Ensure the design is responsive for mobile, tablet, and desktop.
-      6. Include appropriate accessibility attributes (aria-labels, roles, etc.).
+      6. Include appropriate accessibility attributes.
       7. Use semantic HTML elements where possible.
       8. Implement hover and focus states for interactive elements.
-      9. USE bg-black/bg-blue/or of the format bg-[hexcode],avoid using the format of bg-color-number for both bg and text ALL SECTIONS FOLLOW THIS DESIGN THEME AND LIGHTER COLOR TEXT.
-      10. 10. For icons, use inline SVG code from Lucide React icons. You can find the SVG code for icons at https://lucide.dev/icons. Include the SVG code directly in the JSX.
-      11. Keep the code concise, aiming for no more than 150-175 lines while ensuring completeness and rapid response.
+      9. Use bg-black/bg-blue/or of the format bg-[hexcode] for backgrounds.
+      10. For icons, use inline SVG code from Lucide React icons.
+      11. Keep the code concise, aiming for no more than 150-175 lines.
       12. Add brief comments to explain any complex logic or structure.
       13. Ensure all JSX is properly closed and nested.
-      14. Use default React imports (e.g., import React, { useState } from 'react';).
-      15. Don't use external libraries, use native React code only. Dont use import statements at all.
+      14. Don't use external libraries or import statements.
 
       Example structure:
       const Component = () => {
-        // Component logic and JSX here
-        <div>
-        {/* Example of using a Lucide React icon inline */}
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          {/* SVG path for the icon */}
-        </svg>
-        {/* Rest of the component JSX */}
-      </div>
+        return (
+          <div>
+            {/* Component JSX here */}
+          </div>
+        );
       };
 
-      Ensure the code is clean, well-formatted, and follows React best practices.
-      Do not include any additional text or explanations outside of the component code.
+      Provide only the component code, no additional explanations.
     `;
 
-    const result = await model.generateContent(enhancedPrompt);
-    const response = await result.response;
-    let code = await response.text();
+    let code = await generateWithRetry(model, enhancedPrompt);
 
-    // Clean up the code
+    // Basic cleanup
     code = code.trim();
-    if (code.startsWith("```jsx") || code.startsWith("```javascript") || code.startsWith("```typescript") || code.startsWith("```")) {
+    if (code.startsWith("```") && code.endsWith("```")) {
+      code = code.slice(3, -3);
+    }
+    if (code.startsWith("jsx") || code.startsWith("javascript") || code.startsWith("typescript")) {
       code = code.split("\n").slice(1).join("\n");
     }
-    if (code.endsWith("```")) {
-      code = code.split("\n").slice(0, -1).join("\n");
-    }
-
-    code = await formatCode(code);
 
     return NextResponse.json({ code }, { status: 200 });
   } catch (error: any) {
