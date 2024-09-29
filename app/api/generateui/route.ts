@@ -1,15 +1,18 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 
-// Remove edge runtime to allow for longer execution time
-// export const runtime = "edge";
+export const runtime = "edge";
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+const MAX_RETRIES = 1; // Reduced to minimize total execution time
+const RETRY_DELAY = 500; // Reduced to 0.5 seconds
+const TIMEOUT_MS = 20000; // Global timeout of 20 seconds to fit within 25 seconds total execution time
 
 async function generateWithRetry(model: any, prompt: string, retries = 0): Promise<string> {
   try {
-    const result = await model.generateContent(prompt);
+    const result = await Promise.race([
+      model.generateContent(prompt),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Request timed out")), TIMEOUT_MS))
+    ]);
     const response = await result.response;
     return response.text();
   } catch (error) {
@@ -44,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
 
     const enhancedPrompt = `
-      Create a modern, responsive React component using the following requirements:
+       Create a modern, responsive React component using the following requirements:
       User's request: "${userPrompt}"
       Guidelines:
       1. You are a UI/UX expert, specialising in javascript and tailwind css.
