@@ -11,15 +11,23 @@ import {
   Share2Icon,
   UploadIcon,
   Fullscreen,
-  SquareMousePointer
+  SquareMousePointer,
+  VideoIcon,
+  HomeIcon
 } from "lucide-react";
 
 const sidebarItems = [
   {
     href: "/home",
-    icon: LayoutDashboardIcon,
+    icon: HomeIcon,
     label: "Home Page",
-    description: "Main page",
+    description: "All services",
+  },
+  {
+    href: "/videos",
+    icon: VideoIcon,
+    label: "Videos",
+    description: "All Videos",
   },
   {
     href: "/cropper",

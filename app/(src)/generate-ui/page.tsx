@@ -1,59 +1,66 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import GeneratedUIPreview from "@/components/GeneratedUIPreview";
-import { Highlight, themes } from "prism-react-renderer";
+import React, { useState } from 'react'
+import dynamic from 'next/dynamic'
+import { Highlight, themes } from 'prism-react-renderer'
+
+const GeneratedUIPreview = dynamic(() => import('@/components/GeneratedUIPreview'), { ssr: false })
 
 export default function GenerateUi() {
-  const [prompt, setPrompt] = useState("");
-  const [generatedCode, setGeneratedCode] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState('')
+  const [generatedCode, setGeneratedCode] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      setError("Please enter a prompt first");
-      return;
+      setError('Please enter a prompt first')
+      return
     }
 
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
+    setGeneratedCode('')
 
     try {
-      const response = await fetch("/api/generateui", {
-        method: "POST",
+      const response = await fetch('/api/generateui', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ body: prompt }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json();
-      setGeneratedCode(data.code);
-    } catch (error) {
-      console.error("Error", error);
-      setError("Code generation failed, please try again!");
+      const data = await response.json()
+      if (data.error) {
+        throw new Error(data.error)
+      }
+      setGeneratedCode(data.code)
+    } catch (error: any) {
+      console.error('Error', error)
+      setError(`Code generation failed: ${error.message}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleCopyCode = () => {
     navigator.clipboard
       .writeText(generatedCode)
       .then(() => {
-        const notification = document.getElementById("copyNotification");
+        const notification = document.getElementById('copyNotification')
         if (notification) {
-          notification.classList.remove("hidden");
-          setTimeout(() => notification.classList.add("hidden"), 2000);
+          notification.classList.remove('hidden')
+          setTimeout(() => notification.classList.add('hidden'), 2000)
         }
       })
-      .catch((err) => console.error("Failed to copy: ", err));
-  };
+      .catch((err) => console.error('Failed to copy: ', err))
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center p-12 bg-gray-50">
@@ -64,7 +71,7 @@ export default function GenerateUi() {
 
         <div className="relative flex items-center w-full h-14 rounded-lg focus-within:shadow-lg bg-white overflow-hidden border border-blue-200">
           <input
-            className="peer h-full w-full outline-none text-white pl-5 pr-14"
+            className="peer h-full w-full outline-none text-gray-200 pl-5 pr-14"
             type="text"
             placeholder="Enter a prompt..."
             value={prompt}
@@ -126,10 +133,20 @@ export default function GenerateUi() {
         {generatedCode && (
           <>
             <div className="mt-8 w-full">
-              {/* <h2 className="text-xl text-blue-600 font-semibold mb-4">
-                Generated UI Preview
-              </h2>
-              <GeneratedUIPreview code={generatedCode} /> */}
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl text-blue-600 font-semibold">
+                  Generated UI:
+                </h2>
+                <button
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-300"
+                >
+                  {showPreview ? 'Hide Preview' : 'Show Preview'}
+                </button>
+              </div>
+              
+              {showPreview && <GeneratedUIPreview code={generatedCode} />}
+
               <h2 className="text-xl text-blue-600 font-semibold my-4">
                 Generated Code:
               </h2>
@@ -179,26 +196,27 @@ export default function GenerateUi() {
             </div>
           </>
         )}
+
         <div className="mt-8">
           <h2 className="text-md text-blue-500 font-semibold">Please Note:</h2>
           <p className="text-sm text-blue-600">
             This is just a beta version, sometimes the prompt might fail or the
             code might not be correct.
-            <p className="text-sm text-blue-600">
-              We are currently working on improving this.
-            </p>
-            <p className="text-sm text-blue-600">Do give it a try though!</p>
-            <p className="text-sm text-blue-600">
-              If you spot any bugs or have any suggestions, hit us up on {" "}
-              <a className="underline" href="https://www.linkedin.com/in/akshat-girdhar-56a848206/">
-                Linkedin
-              </a>{" "}
-              or {" "}
-              <a className="underline" href="https://x.com/AkshatGirdhar2">Twitter</a>
-            </p>
+          </p>
+          <p className="text-sm text-blue-600">
+            We are currently working on improving this.
+          </p>
+          <p className="text-sm text-blue-600">Do give it a try though!</p>
+          <p className="text-sm text-blue-600">
+            If you spot any bugs or have any suggestions, hit us up on {" "}
+            <a className="underline" href="https://www.linkedin.com/in/akshat-girdhar-56a848206/">
+              Linkedin
+            </a>{" "}
+            or {" "}
+            <a className="underline" href="https://x.com/AkshatGirdhar2">Twitter</a>
           </p>
         </div>
       </div>
     </main>
-  );
+  )
 }

@@ -1,88 +1,86 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState } from "react";
-import DOMPurify from "dompurify";
+import React, { useState, useEffect } from 'react';
+import { transform } from '@babel/standalone';
 
-const GeneratedUIPreview = ({ code }: { code: string }) => {
-  const iFrameRef = useRef<HTMLIFrameElement>(null);
-  const [loading, setLoading] = useState(true);
+export default function GeneratedUIPreview({ code }: { code: string }) {
+  const [PreviewComponent, setPreviewComponent] = useState<React.ComponentType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const iframe = iFrameRef.current;
-    if (iframe) {
-      setLoading(true);
-      setError(null);
-      const document = iframe.contentDocument;
-      if (document) {
-        try {
-          const sanitizedCode = DOMPurify.sanitize(code);
-          document.open();
-          document.write(`
-            <!DOCTYPE html>
-            <html lang="en">
-              <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <script src="https://cdn.tailwindcss.com"></script>
-                <title>Generated UI Preview</title>
-              </head>
-              <body>
-                <div id="root">${sanitizedCode}</div>
-                <script>
-                  window.onload = function() {
-                    window.parent.postMessage({type: 'loaded'}, '*');
-                  };
-                  window.onerror = function(message, source, lineno, colno, error) {
-                    window.parent.postMessage({type: 'error', message: message}, '*');
-                    return true;
-                  };
-                </script>
-              </body>
-            </html>
-          `);
-          document.close();
-        } catch (err) {
-          setError("Failed to render preview");
-          console.error(err);
-        }
-      }
-    }
-  }, [code]);
+    const transpileAndRender = async () => {
+      try {
+        // Transpile the code
+        const { code: transpiledCode } = transform(code, {
+          presets: ['react'],
+          filename: 'component.tsx',
+        });
 
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'loaded') {
-        setLoading(false);
-      } else if (event.data.type === 'error') {
-        setError(event.data.message);
+        // Create a function from the transpiled code
+        const createComponent = new Function('React', `
+          ${transpiledCode}
+          return Component;
+        `);
+
+        // Create the component
+        const Component = createComponent(React);
+
+        setPreviewComponent(() => Component);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error rendering preview:', err);
+        setError(`Failed to render preview: ${err.message}`);
+        setPreviewComponent(null);
       }
     };
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
+    transpileAndRender();
+  }, [code]);
+
+  if (error) {
+    return (
+      <div className="text-red-500 p-4 border border-red-300 rounded">
+        <h3 className="font-bold mb-2">Error:</h3>
+        <pre className="whitespace-pre-wrap">{error}</pre>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative w-full h-96 border-2 border-blue-200 rounded-lg overflow-hidden">
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-        </div>
+    <div className="border-2 border-blue-200 rounded-lg p-4 mt-4">
+      {PreviewComponent ? (
+        <ErrorBoundary fallback={<div className="text-red-500">Error rendering component</div>}>
+          <PreviewComponent />
+        </ErrorBoundary>
+      ) : (
+        <p>Loading preview...</p>
       )}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-red-100">
-          <p className="text-red-500">{error}</p>
-        </div>
-      )}
-      <iframe
-        ref={iFrameRef}
-        className="w-full h-full"
-        title="Generated UI Preview"
-        sandbox="allow-scripts"
-      />
     </div>
   );
-};
+}
 
-export default GeneratedUIPreview;
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('Error in preview component:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}

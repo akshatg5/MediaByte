@@ -1,55 +1,114 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
+import { parse } from '@babel/parser';
+import prettier from 'prettier';
 
 export const runtime = "edge";
+
+const validateCode = (code: string) => {
+  try {
+    parse(code, {
+      sourceType: 'module',
+      plugins: ['jsx', 'typescript'],
+    });
+    return true;
+  } catch (error) {
+    console.error('Parse error:', error);
+    return false;
+  }
+};
+
+const formatCode = async (code: string) => {
+  try {
+    return await prettier.format(code, {
+      parser: 'babel-ts',
+      semi: true,
+      singleQuote: true,
+    });
+  } catch (error) {
+    console.error('Format error:', error);
+    return code;
+  }
+};
+
 export async function POST(req: NextRequest) {
   if (!process.env.GEMINI_API_KEY) {
     return NextResponse.json(
-      { message: "Missing Credentials" },
+      { error: "Missing Gemini API credentials" },
       { status: 500 }
     );
   }
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-  if (!genAI) {
-    return NextResponse.json(
-      { message: "Cannot get Gemini API" },
-      { status: 500 }
-    );
-  }
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const data = await req.json();
     const userPrompt = data.body;
 
-    const enhancedPrompt = `
-        Create a modern, responsive React component using the following requirements:
-        User's request: "${userPrompt}"
-        Guidelines:
-        1. Use functional components and hooks where appropriate.
-        2. Implement Tailwind CSS (version 3.x) for styling. Use utility classes efficiently.
-        3. Ensure the design is responsive and works well on mobile, tablet, and desktop.
-        4. Include appropriate accessibility attributes (aria-labels, roles, etc.).
-        5. Use semantic HTML elements where possible.
-        6. Add brief comments to explain any complex logic or structure.
-        7. Do not include any import statements or export declarations.
-        8. Utilize Tailwind's color palette, especially focusing on pastel shades for primary elements and darker shades for neutral tones.
-        9. Implement hover and focus states for interactive elements.
-        10. Use Tailwind's built-in animations and transitions for subtle UI enhancements.
+    if (!userPrompt) {
+      return NextResponse.json(
+        { error: "Missing user prompt in request body" },
+        { status: 400 }
+      );
+    }
 
-        Only output the JSX code for the component. Ensure the code is clean, well-formatted, and follows React best practices.
+    const enhancedPrompt = `
+      Create a modern, responsive React component using the following requirements:
+      User's request: "${userPrompt}"
+      Guidelines:
+      1. You are a UI/UX expert, specialising in javascript and tailwind css.
+      2. Return basic ui code only, just the design bit, not the state and hooks.Don't even use import React from "react";
+      3. Define a single functional component named 'Component'.
+      4. Use Tailwind CSS for styling.Use dark backgrounds and light shades of text in the whole page ensure this consistency, dark backgrounds,light color text.
+      5. Ensure the design is responsive for mobile, tablet, and desktop.
+      6. Include appropriate accessibility attributes (aria-labels, roles, etc.).
+      7. Use semantic HTML elements where possible.
+      8. Implement hover and focus states for interactive elements.
+      9. USE bg-black/bg-blue/or of the format bg-[hexcode],avoid using the format of bg-color-number for both bg and text ALL SECTIONS FOLLOW THIS DESIGN THEME AND LIGHTER COLOR TEXT.
+      10. 10. For icons, use inline SVG code from Lucide React icons. You can find the SVG code for icons at https://lucide.dev/icons. Include the SVG code directly in the JSX.
+      11. Keep the code concise, aiming for no more than 150-175 lines while ensuring completeness and rapid response.
+      12. Add brief comments to explain any complex logic or structure.
+      13. Ensure all JSX is properly closed and nested.
+      14. Use default React imports (e.g., import React, { useState } from 'react';).
+      15. Don't use external libraries, use native React code only. Dont use import statements at all.
+
+      Example structure:
+      const Component = () => {
+        // Component logic and JSX here
+        <div>
+        {/* Example of using a Lucide React icon inline */}
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {/* SVG path for the icon */}
+        </svg>
+        {/* Rest of the component JSX */}
+      </div>
+      };
+
+      Ensure the code is clean, well-formatted, and follows React best practices.
+      Do not include any additional text or explanations outside of the component code.
     `;
 
     const result = await model.generateContent(enhancedPrompt);
     const response = await result.response;
-    const code = await response.text();
+    let code = await response.text();
 
-    return NextResponse.json({ code: code }, { status: 200 });
-  } catch (error) {
-    console.error(error);
+    // Clean up the code
+    code = code.trim();
+    if (code.startsWith("```jsx") || code.startsWith("```javascript") || code.startsWith("```typescript") || code.startsWith("```")) {
+      code = code.split("\n").slice(1).join("\n");
+    }
+    if (code.endsWith("```")) {
+      code = code.split("\n").slice(0, -1).join("\n");
+    }
+
+    code = await formatCode(code);
+
+    return NextResponse.json({ code }, { status: 200 });
+  } catch (error: any) {
+    console.error('Error generating code:', error);
     return NextResponse.json(
-      { error: "An error occurred while generating the code!" },
+      { error: `An error occurred while generating the code: ${error.message}` },
       { status: 500 }
     );
   }
