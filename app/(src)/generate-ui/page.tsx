@@ -1,66 +1,80 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import dynamic from 'next/dynamic'
-import { Highlight, themes } from 'prism-react-renderer'
+import React, { useState } from "react";
+import dynamic from "next/dynamic";
+import { Highlight, themes } from "prism-react-renderer";
 
-const GeneratedUIPreview = dynamic(() => import('@/components/GeneratedUIPreview'), { ssr: false })
+const GeneratedUIPreview = dynamic(
+  () => import("@/components/GeneratedUIPreview"),
+  { ssr: false }
+);
 
 export default function GenerateUi() {
-  const [prompt, setPrompt] = useState('')
-  const [generatedCode, setGeneratedCode] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [showPreview, setShowPreview] = useState(false)
+  const [prompt, setPrompt] = useState("");
+  const [generatedCode, setGeneratedCode] = useState("");
+  const [selectedModel, setSelectedModel] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      setError('Please enter a prompt first')
-      return
+      setError("Please enter a prompt first");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
-    setGeneratedCode('')
+    setLoading(true);
+    setError(null);
+    setGeneratedCode("");
 
     try {
-      const response = await fetch('/api/generateui', {
-        method: 'POST',
+      let endpoint;
+      if (selectedModel === "openai") {
+        endpoint = "/api/generateuigpt";
+      } else if (selectedModel === "claude") {
+        endpoint = "/api/generateuiclaude";
+      } else if (selectedModel === "llama") {
+        endpoint = "/api/generateuillama";
+      } else {
+        endpoint = "/api/generateui";
+      }
+      const response = await fetch(endpoint, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ body: prompt }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json()
+      const data = await response.json();
       if (data.error) {
-        throw new Error(data.error)
+        throw new Error(data.error);
       }
-      setGeneratedCode(data.code)
+      setGeneratedCode(data.code);
     } catch (error: any) {
-      console.error('Error', error)
-      setError(`Code generation failed: ${error.message}`)
+      console.error("Error", error);
+      setError(`Code generation failed: ${error.message}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCopyCode = () => {
     navigator.clipboard
       .writeText(generatedCode)
       .then(() => {
-        const notification = document.getElementById('copyNotification')
+        const notification = document.getElementById("copyNotification");
         if (notification) {
-          notification.classList.remove('hidden')
-          setTimeout(() => notification.classList.add('hidden'), 2000)
+          notification.classList.remove("hidden");
+          setTimeout(() => notification.classList.add("hidden"), 2000);
         }
       })
-      .catch((err) => console.error('Failed to copy: ', err))
-  }
+      .catch((err) => console.error("Failed to copy: ", err));
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center p-12 bg-gray-50">
@@ -68,7 +82,19 @@ export default function GenerateUi() {
         <h1 className="text-3xl text-blue-600 font-bold mb-8 text-center">
           UI Generator
         </h1>
-
+        <div>
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="w-full p-2 my-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>
+              Select Model
+            </option>
+            <option value="gemini">Gemini</option>
+            <option value="llama">LLAMA 2</option>
+          </select>
+        </div>
         <div className="relative flex items-center w-full h-14 rounded-lg focus-within:shadow-lg bg-white overflow-hidden border border-blue-200">
           <input
             className="peer h-full w-full outline-none text-gray-200 pl-5 pr-14"
@@ -141,10 +167,10 @@ export default function GenerateUi() {
                   onClick={() => setShowPreview(!showPreview)}
                   className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-300"
                 >
-                  {showPreview ? 'Hide Preview' : 'Show Preview'}
+                  {showPreview ? "Hide Preview" : "Show Preview"}
                 </button>
               </div>
-              
+
               {showPreview && <GeneratedUIPreview code={generatedCode} />}
 
               <h2 className="text-xl text-blue-600 font-semibold my-4">
@@ -208,15 +234,20 @@ export default function GenerateUi() {
           </p>
           <p className="text-sm text-blue-600">Do give it a try though!</p>
           <p className="text-sm text-blue-600">
-            If you spot any bugs or have any suggestions, hit us up on {" "}
-            <a className="underline" href="https://www.linkedin.com/in/akshat-girdhar-56a848206/">
+            If you spot any bugs or have any suggestions, hit us up on{" "}
+            <a
+              className="underline"
+              href="https://www.linkedin.com/in/akshat-girdhar-56a848206/"
+            >
               Linkedin
             </a>{" "}
-            or {" "}
-            <a className="underline" href="https://x.com/AkshatGirdhar2">Twitter</a>
+            or{" "}
+            <a className="underline" href="https://x.com/AkshatGirdhar2">
+              Twitter
+            </a>
           </p>
         </div>
       </div>
     </main>
-  )
+  );
 }
