@@ -92,7 +92,7 @@ export default function GenerateUi() {
               Select Model
             </option>
             <option value="gemini">Gemini</option>
-            <option value="llama">LLAMA 2</option>
+            <option value="llama" disabled>LLAMA 2 (Coming Soon)</option>
           </select>
         </div>
         <div className="relative flex items-center w-full h-14 rounded-lg focus-within:shadow-lg bg-white overflow-hidden border border-blue-200">
